@@ -1,0 +1,95 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f4f4;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+h1 {
+  font-family: "Gill Sans", "Gill Sans MT", Calibri, "Trebuchet MS", sans-serif;
+  color: #4caf50;
+}
+
+.container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+input,
+button {
+  width: 90%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+button:disabled {
+  background: gray;
+  cursor: not-allowed;
+}
+
+.result {
+  margin-top: 15px;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: fadeIn 0.5s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body.dark {
+  background: #121212;
+  color: white;
+}
+
+body.dark .container {
+  background: #1e1e1e;
+}
+
+#themeToggle {
+  margin-bottom: 15px;
+}
+
+.progress-container {
+  width: 100%;
+  height: 10px;
+  background: #ddd;
+  border-radius: 10px;
+  margin-top: 15px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+#bmiBar {
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+button {
+  margin-left: 0.5rem;
+  border: none;
+  border-radius: 8px;
+  background: #4caf50;
+  color: white;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+button:hover {
+  transform: scale(1.03);
+  opacity: 0.9;
+}

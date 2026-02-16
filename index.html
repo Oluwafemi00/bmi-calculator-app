@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="style.css" />
+    <title>BMI Calculator</title>
+  </head>
+  <body>
+    <section>
+      <main>
+        <div class="container">
+          <button id="themeToggle">🌙 Dark Mode</button>
+          <div class="Categories">
+            <h2>📊 BMI Categories (Adults)</h2>
+            <ul>
+              <li>Underweight: Below 18.5kg</li>
+              <li>Normal weight: 18.5 – 24.9kg</li>
+              <li>Overweight: 25 – 29.9kg</li>
+              <li>Obesity: 30kg and above</li>
+            </ul>
+          </div>
+          <div>
+            <select id="unit">
+              <option value="metric">Metric (m / kg)</option>
+              <option value="imperial">Imperial (in / lb)</option>
+            </select>
+            <!-- <div>
+              <input
+                class="convert-in"
+                type="number"
+                placeholder="Inches to meter"
+              />
+              <button class="btn-in">in => m</button>
+              <input
+                class="convert-lb"
+                type="number"
+                placeholder="Pounds to kg"
+              />
+              <button class="btn-lb">lb => kg</button>
+            </div> -->
+          </div>
+          <div>
+            <div class="Calculator">
+              <p>Check your Body Mass Index</p>
+              <h1 class="output"></h1>
+              <div class="progress-container">
+                <div id="bmiBar"></div>
+              </div>
+              <label for="target-bmi"> Target BMI :</label><br />
+              <input
+                class="target-bmi"
+                type="number"
+                name="target-bmi"
+                id="target-bmi"
+              />
+              <br />
+              <label for="height">Height :</label><br />
+              <input
+                id="height"
+                type="number"
+                placeholder="Input your height "
+              />
+              <br />
+              <label for="weight">Weight :</label><br />
+              <input
+                id="weight"
+                type="number"
+                placeholder="Input your weight"
+              />
+              <br />
+              <button class="btn-calculator" disabled>Check BMI</button>
+              <button class="hwr-calculator" disabled>Check HWR</button>
+              <button class="tb-btn" disabled>Target BMI</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </section>
+    <script src="index.js"></script>
+  </body>
+</html>
