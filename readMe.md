@@ -4,7 +4,7 @@ A responsive BMI calculator built with HTML, CSS and JavaScript.
 
 ## Features
 
-## ✨ Features
+## Features
 
 - **Dual Unit Support**: Effortlessly switch between Metric (cm/kg) and Imperial (in/lb). Labels and placeholders update dynamically to prevent input errors.
 - **Visual Analytics**:
