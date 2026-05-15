@@ -1,193 +1,257 @@
-// Constants for categories
 const CATEGORIES = {
-  UNDERWEIGHT: { label: "Underweight", color: "#3498db", max: 18.5 },
-  NORMAL: { label: "Normal weight", color: "#2ecc71", max: 25 },
-  OVERWEIGHT: { label: "Overweight", color: "#f1c40f", max: 30 },
-  OBESE: { label: "Obese", color: "#e74c3c", max: Infinity },
+  UNDERWEIGHT: {
+    label: "Underweight",
+    color: "#1757A0",
+    bg: "var(--blue-bg)",
+    text: "var(--blue)",
+    max: 18.5,
+  },
+  NORMAL: {
+    label: "Normal weight",
+    color: "#2A7D4F",
+    bg: "var(--green-bg)",
+    text: "var(--green)",
+    max: 25,
+  },
+  OVERWEIGHT: {
+    label: "Overweight",
+    color: "#A0720A",
+    bg: "var(--yellow-bg)",
+    text: "var(--yellow)",
+    max: 30,
+  },
+  OBESE: {
+    label: "Obese",
+    color: "#B83232",
+    bg: "var(--red-bg)",
+    text: "var(--red)",
+    max: Infinity,
+  },
 };
 
-const elements = {
-  height: document.getElementById("height"),
-  weight: document.getElementById("weight"),
-  targetBmi: document.getElementById("target-bmi"),
-  unit: document.getElementById("unit"),
-  outputValue: document.querySelector(".bmi-value"),
-  outputLabel: document.querySelector(".bmi-label"),
-  bmiBar: document.getElementById("bmiBar"),
-  buttons: document.querySelectorAll("button:not(#themeToggle)"),
-};
+const $ = (id) => document.getElementById(id);
+const heightEl = $("height"),
+  weightEl = $("weight"),
+  targetEl = $("target-bmi");
+const bmiValue = $("bmiValue"),
+  bmiCategory = $("bmiCategory"),
+  bmiNote = $("bmiNote");
+const gaugeMarker = $("gaugeMarker"),
+  shareBtn = $("shareBtn");
+const calcBtn = $("calcBtn"),
+  hwrBtn = $("hwrBtn"),
+  targetBtn = $("targetBtn");
+const historyList = $("historyList");
+let currentUnit = "metric";
 
-// Helper: Get metric values regardless of input unit
-function getNormalizedData() {
-  let h = parseFloat(elements.height.value);
-  let w = parseFloat(elements.weight.value);
-  const isImperial = elements.unit.value === "imperial";
+// Unit toggle
+document.querySelectorAll(".unit-pill").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document
+      .querySelectorAll(".unit-pill")
+      .forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentUnit = btn.dataset.unit;
+    const isImp = currentUnit === "imperial";
+    $("h-unit").textContent = isImp ? "in" : "cm";
+    $("w-unit").textContent = isImp ? "lb" : "kg";
+    heightEl.placeholder = isImp ? "69" : "175";
+    weightEl.placeholder = isImp ? "155" : "70";
+    heightEl.value = "";
+    weightEl.value = "";
+    resetDisplay();
+    validate();
+  });
+});
 
-  return {
-    h: isImperial ? h * 0.0254 : h / 100, // Handle cm to m or in to m
-    w: isImperial ? w * 0.453592 : w,
-    target: parseFloat(elements.targetBmi.value) || 22,
-  };
+function getMetric() {
+  let h = parseFloat(heightEl.value),
+    w = parseFloat(weightEl.value);
+  const t = parseFloat(targetEl.value) || 22;
+  if (currentUnit === "imperial") {
+    h = h * 0.0254;
+    w = w * 0.453592;
+  } else {
+    h = h / 100;
+  }
+  return { h, w, t };
 }
 
-// Logic: Get Category Object
 function getCategory(bmi) {
-  if (bmi < CATEGORIES.UNDERWEIGHT.max) return CATEGORIES.UNDERWEIGHT;
-  if (bmi < CATEGORIES.NORMAL.max) return CATEGORIES.NORMAL;
-  if (bmi < CATEGORIES.OVERWEIGHT.max) return CATEGORIES.OVERWEIGHT;
+  if (bmi < 18.5) return CATEGORIES.UNDERWEIGHT;
+  if (bmi < 25) return CATEGORIES.NORMAL;
+  if (bmi < 30) return CATEGORIES.OVERWEIGHT;
   return CATEGORIES.OBESE;
 }
 
-// UI: Update Display
-function updateDisplay(value, label, color = "#4caf50") {
-  elements.outputValue.textContent = value;
-  elements.outputLabel.textContent = label;
-  elements.outputLabel.style.color = color;
-
-  // Update Progress Bar
-  const percentage = Math.min((parseFloat(value) / 40) * 100, 100);
-  elements.bmiBar.style.width = `${percentage}%`;
-  elements.bmiBar.style.background = color;
+function bmiToGaugePercent(bmi) {
+  // Map BMI 16-40 to 0-100%
+  const clamped = Math.min(Math.max(bmi, 16), 40);
+  return ((clamped - 16) / 24) * 100;
 }
 
-// Event: Calculate BMI
-document.querySelector(".btn-calculator").addEventListener("click", () => {
-  const { h, w } = getNormalizedData();
+function setDisplay(num, catLabel, color, note) {
+  bmiValue.classList.remove("animate");
+  void bmiValue.offsetWidth;
+  bmiValue.classList.add("animate");
+  bmiValue.textContent = num;
+  bmiValue.style.color = color || "var(--text)";
+  bmiCategory.textContent = catLabel;
+  bmiCategory.style.color = color || "var(--text2)";
+  bmiNote.textContent = note || "";
+}
+
+function updateGauge(bmi) {
+  const pct = bmiToGaugePercent(bmi);
+  gaugeMarker.style.left = pct + "%";
+}
+
+function resetDisplay() {
+  bmiValue.textContent = "—";
+  bmiValue.style.color = "var(--text)";
+  bmiCategory.textContent = "Enter your details";
+  bmiCategory.style.color = "var(--text3)";
+  bmiNote.textContent = "";
+  gaugeMarker.style.left = "0%";
+  shareBtn.style.display = "none";
+}
+
+function validate() {
+  const ok = heightEl.value && weightEl.value;
+  [calcBtn, hwrBtn, targetBtn].forEach((b) => (b.disabled = !ok));
+}
+[heightEl, weightEl].forEach((el) => el.addEventListener("input", validate));
+
+// Calculate BMI
+calcBtn.addEventListener("click", () => {
+  const { h, w } = getMetric();
   const bmi = (w / (h * h)).toFixed(1);
   const cat = getCategory(bmi);
-  updateDisplay(bmi, cat.label, cat.color);
-  showShareButton();
+  setDisplay(bmi, cat.label, cat.color, "");
+  updateGauge(parseFloat(bmi));
+  shareBtn.style.display = "flex";
+  saveHistory(bmi, cat);
 });
 
-// Event: Healthy Weight Range
-document.querySelector(".hwr-calculator").addEventListener("click", () => {
-  const { h } = getNormalizedData();
-  const min = (18.5 * h ** 2).toFixed(1);
-  const max = (24.9 * h ** 2).toFixed(1);
-  updateDisplay(`${min}-${max}`, "Healthy Range (kg)");
+// Healthy weight range
+hwrBtn.addEventListener("click", () => {
+  const { h } = getMetric();
+  const min = (18.5 * h * h).toFixed(1);
+  const max = (24.9 * h * h).toFixed(1);
+  const unit = currentUnit === "imperial" ? "lb" : "kg";
+  const minDisp =
+    currentUnit === "imperial" ? (min / 0.453592).toFixed(1) : min;
+  const maxDisp =
+    currentUnit === "imperial" ? (max / 0.453592).toFixed(1) : max;
+  setDisplay(
+    `${minDisp}–${maxDisp}`,
+    "Ideal weight range",
+    "var(--green)",
+    unit,
+  );
 });
 
-// Event: Target Goal
-document.querySelector(".tb-btn").addEventListener("click", () => {
-  const { h, w, target } = getNormalizedData();
-  const targetW = target * h ** 2;
-  const diff = (targetW - w).toFixed(1);
-  const msg = diff > 0 ? `Gain ${diff}kg` : `Lose ${Math.abs(diff)}kg`;
-  updateDisplay(target, msg);
+// Target goal
+targetBtn.addEventListener("click", () => {
+  const { h, w, t } = getMetric();
+  const targetW = t * h * h;
+  const diff = targetW - w;
+  const unit = currentUnit === "imperial" ? "lb" : "kg";
+  const diffDisp =
+    currentUnit === "imperial"
+      ? Math.abs(diff / 0.453592).toFixed(1)
+      : Math.abs(diff).toFixed(1);
+  const msg =
+    diff > 0
+      ? `Gain ${diffDisp}${unit} to reach BMI ${t}`
+      : `Lose ${diffDisp}${unit} to reach BMI ${t}`;
+  setDisplay(t, msg, diff > 0 ? "var(--blue)" : "var(--yellow)", "");
 });
 
-// Validation
-const validate = () => {
-  const isValid = elements.height.value && elements.weight.value;
-  elements.buttons.forEach((btn) => (btn.disabled = !isValid));
-};
-
-[elements.height, elements.weight].forEach((el) =>
-  el.addEventListener("input", validate),
-);
-
-// Theme Toggle
-document.getElementById("themeToggle").addEventListener("click", () => {
+// Theme toggle
+$("themeToggle").addEventListener("click", () => {
   document.body.classList.toggle("dark");
-  const isDark = document.body.classList.contains("dark");
-  document.getElementById("themeToggle").textContent = isDark ? "☀️" : "🌙";
+  const dark = document.body.classList.contains("dark");
+  $("themeToggle").textContent = dark ? "☀️" : "🌙";
+  if (bmiChart) {
+    bmiChart.options.scales.x.ticks.color = dark ? "#605A52" : "#A09A93";
+    bmiChart.options.scales.y.ticks.color = dark ? "#605A52" : "#A09A93";
+    bmiChart.options.scales.x.grid.color = dark
+      ? "rgba(255,255,255,0.04)"
+      : "rgba(0,0,0,0.04)";
+    bmiChart.options.scales.y.grid.color = dark
+      ? "rgba(255,255,255,0.04)"
+      : "rgba(0,0,0,0.04)";
+    bmiChart.update();
+  }
 });
 
-const unitPlaceholders = {
-  metric: { height: "cm", weight: "kg" },
-  imperial: { height: "in", weight: "lb" },
-};
-
-elements.unit.addEventListener("change", (e) => {
-  const selected = e.target.value;
-  document.getElementById("h-unit").textContent =
-    `(${unitPlaceholders[selected].height})`;
-  document.getElementById("w-unit").textContent =
-    `(${unitPlaceholders[selected].weight})`;
-
-  // Update placeholders
-  elements.height.placeholder = `Height (${unitPlaceholders[selected].height})`;
-  elements.weight.placeholder = `Weight (${unitPlaceholders[selected].weight})`;
-
-  // Clear inputs to avoid conversion confusion
-  elements.height.value = "";
-  elements.weight.value = "";
-  elements.outputValue.textContent = "--.-";
-  elements.outputLabel.textContent = "Units changed";
-
-  validate(); // Re-check buttons
-});
-
-const historyList = document.getElementById("historyList");
-const clearBtn = document.getElementById("clearHistory");
-
-// 1. Function to save to LocalStorage
-function saveResult(bmi, category) {
-  const history = JSON.parse(localStorage.getItem("bmiHistory") || "[]");
-  const newEntry = {
+// HISTORY
+function saveHistory(bmi, cat) {
+  const h = JSON.parse(localStorage.getItem("bmiHistory") || "[]");
+  h.unshift({
     bmi,
-    label: category.label,
-    color: category.color,
+    label: cat.label,
+    color: cat.color,
+    bg: cat.bg,
+    text: cat.text,
     date: new Date().toLocaleDateString(),
-  };
-
-  history.unshift(newEntry); // Add to the start
-  localStorage.setItem("bmiHistory", JSON.stringify(history.slice(0, 5))); // Keep last 5
+  });
+  localStorage.setItem("bmiHistory", JSON.stringify(h.slice(0, 8)));
   renderHistory();
   updateChart();
 }
 
-// 2. Function to display history on screen
 function renderHistory() {
-  const history = JSON.parse(localStorage.getItem("bmiHistory") || "[]");
-  historyList.innerHTML = history
+  const h = JSON.parse(localStorage.getItem("bmiHistory") || "[]");
+  if (!h.length) {
+    historyList.innerHTML = '<li class="empty-state">No calculations yet</li>';
+    return;
+  }
+  historyList.innerHTML = h
     .map(
       (item) => `
-    <li class="history-item">
-      <span><strong>${item.bmi}</strong> (${item.date})</span>
-      <span class="history-tag" style="background:${item.color}">${item.label}</span>
-    </li>
-  `,
+        <li class="history-item">
+          <div class="history-left">
+            <span class="history-bmi">${item.bmi}</span>
+            <span class="history-date">${item.date}</span>
+          </div>
+          <span class="history-tag" style="background:${item.bg || "var(--surface2)"}; color:${item.text || item.color}">${item.label}</span>
+        </li>
+      `,
     )
     .join("");
 }
 
-// 3. Update your Calculate button listener to trigger the save
-document.querySelector(".btn-calculator").addEventListener("click", () => {
-  const { h, w } = getNormalizedData();
-  const bmi = (w / (h * h)).toFixed(1);
-  const cat = getCategory(bmi);
-  updateDisplay(bmi, cat.label, cat.color);
-
-  saveResult(bmi, cat); // <--- Save it!
-});
-
-// 4. Clear History
-clearBtn.addEventListener("click", () => {
+$("clearHistory").addEventListener("click", () => {
   localStorage.removeItem("bmiHistory");
   renderHistory();
+  updateChart();
 });
 
-// 5. Initial load
-renderHistory();
-
-let bmiChart; // Global variable to hold the chart instance
-
+// CHART
+let bmiChart;
 function initChart() {
-  const ctx = document.getElementById("bmiChart").getContext("2d");
+  const isDark = document.body.classList.contains("dark");
+  const tickColor = isDark ? "#605A52" : "#A09A93";
+  const gridColor = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)";
+  const ctx = $("bmiChart").getContext("2d");
   bmiChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: [], // Dates go here
+      labels: [],
       datasets: [
         {
-          label: "BMI Trend",
-          data: [], // BMI values go here
-          borderColor: "#4caf50",
-          backgroundColor: "rgba(76, 175, 80, 0.1)",
+          label: "BMI",
+          data: [],
+          borderColor: "#2A7D4F",
+          backgroundColor: "rgba(42,125,79,0.06)",
           borderWidth: 2,
           fill: true,
-          tension: 0.3, // Makes the line curvy
+          tension: 0.4,
+          pointBackgroundColor: "#2A7D4F",
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
       ],
     },
@@ -195,65 +259,80 @@ function initChart() {
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: { beginAtZero: false },
+        x: {
+          ticks: {
+            color: tickColor,
+            font: { family: "'DM Sans', sans-serif", size: 11 },
+          },
+          grid: { color: gridColor },
+          border: { display: false },
+        },
+        y: {
+          beginAtZero: false,
+          ticks: {
+            color: tickColor,
+            font: { family: "'DM Sans', sans-serif", size: 11 },
+          },
+          grid: { color: gridColor },
+          border: { display: false },
+        },
       },
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: "#1A1714",
+          titleColor: "#F0EDE8",
+          bodyColor: "#A09A93",
+          padding: 10,
+          cornerRadius: 8,
+          titleFont: { family: "'DM Sans', sans-serif", size: 12 },
+          bodyFont: { family: "'DM Sans', sans-serif", size: 11 },
+        },
+      },
     },
   });
 }
 
 function updateChart() {
-  const history = JSON.parse(
-    localStorage.getItem("bmiHistory") || "[]",
-  ).reverse();
-
-  // Update chart data
-  bmiChart.data.labels = history.map((item) => item.date);
-  bmiChart.data.datasets[0].data = history.map((item) => item.bmi);
-
-  // Match line color to the latest BMI category color
-  if (history.length > 0) {
-    bmiChart.data.datasets[0].borderColor = history[history.length - 1].color;
+  const h = JSON.parse(localStorage.getItem("bmiHistory") || "[]")
+    .slice()
+    .reverse();
+  if (!bmiChart) return;
+  bmiChart.data.labels = h.map((i) => i.date);
+  bmiChart.data.datasets[0].data = h.map((i) => parseFloat(i.bmi));
+  if (h.length) {
+    const last = getCategory(h[h.length - 1].bmi);
+    bmiChart.data.datasets[0].borderColor = last.color;
+    bmiChart.data.datasets[0].pointBackgroundColor = last.color;
+    bmiChart.data.datasets[0].backgroundColor = last.color + "18";
   }
-
   bmiChart.update();
 }
 
-// Call initChart when the page loads
-initChart();
-renderHistory(); // Existing function
-updateChart(); // Initial chart draw
-
-const shareBtn = document.getElementById("shareBtn");
-
-async function shareResult() {
-  const bmi = elements.outputValue.textContent;
-  const label = elements.outputLabel.textContent;
-  const target = elements.targetBmi.value || "N/A";
-
-  const shareData = {
-    title: "My BMI Progress",
-    text: `My current BMI is ${bmi} (${label}). My target is ${target}. Check yours!`,
-    url: window.location.href, // Shares the link to your app
-  };
-
+// SHARE
+shareBtn.addEventListener("click", async () => {
+  const bmi = bmiValue.textContent;
+  const label = bmiCategory.textContent;
+  const target = targetEl.value || "N/A";
+  const text = `My BMI is ${bmi} (${label}). Target: ${target}. Check yours!`;
   try {
-    // Check if the browser supports the Share API (mostly mobile)
     if (navigator.share) {
-      await navigator.share(shareData);
+      await navigator.share({
+        title: "My BMI",
+        text,
+        url: window.location.href,
+      });
     } else {
-      // Fallback: Copy to clipboard for Desktop
-      await navigator.clipboard.writeText(shareData.text);
-      alert("Result copied to clipboard! 📋");
+      await navigator.clipboard.writeText(text);
+      shareBtn.textContent = "Copied!";
+      setTimeout(() => {
+        shareBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg> Share result`;
+      }, 2000);
     }
-  } catch (err) {
-    console.error("Error sharing:", err);
-  }
-}
+  } catch (e) {}
+});
 
-// Show the button only after a calculation
-function showShareButton() {
-  shareBtn.style.display = "block";
-}
-
-shareBtn.addEventListener("click", shareResult);
+// Init
+initChart();
+renderHistory();
+updateChart();

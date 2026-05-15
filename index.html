@@ -4,78 +4,116 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BMI Tracker</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="container">
-      <header>
-        <h1>BMI Tracker</h1>
-        <button id="themeToggle">🌙</button>
+    <div class="page">
+      <header class="header">
+        <h1 class="header-title">BMI <span>Tracker</span></h1>
+        <button class="theme-btn" id="themeToggle" title="Toggle theme">
+          🌙
+        </button>
       </header>
 
-      <div class="unit-selector">
-        <select id="unit">
-          <option value="metric">Metric (cm / kg)</option>
-          <option value="imperial">Imperial (in / lb)</option>
-        </select>
-      </div>
-
-      <div class="stats-grid">
-        <div class="input-group">
-          <label for="height">Height <span id="h-unit">(cm)</span></label>
-          <input type="number" id="height" placeholder="0" />
-        </div>
-        <div class="input-group">
-          <label for="weight">Weight <span id="w-unit">(kg)</span></label>
-          <input type="number" id="weight" placeholder="0" />
-        </div>
-        <div class="input-group">
-          <label for="target-bmi">Target BMI</label>
-          <input type="number" id="target-bmi" placeholder="22.0" />
-        </div>
-      </div>
-
-      <div class="display-section">
-        <div class="output-container">
-          <span class="bmi-value">--.-</span>
-          <span class="bmi-label">Enter details</span>
-          <button
-            id="shareBtn"
-            style="
-              display: none;
-              width: auto;
-              margin: 10px auto;
-              font-size: 0.8rem;
-            "
-          >
-            📤 Share Result
+      <!-- UNIT TOGGLE -->
+      <div class="card" style="margin-bottom: 12px">
+        <div class="unit-row">
+          <button class="unit-pill active" data-unit="metric">
+            Metric &nbsp;·&nbsp; cm / kg
+          </button>
+          <button class="unit-pill" data-unit="imperial">
+            Imperial &nbsp;·&nbsp; in / lb
           </button>
         </div>
-        <div class="progress-container">
-          <div id="bmiBar"></div>
+      </div>
+
+      <!-- INPUTS -->
+      <div class="card">
+        <div class="input-grid">
+          <div class="field">
+            <label id="h-label">Height <span id="h-unit">cm</span></label>
+            <input type="number" id="height" placeholder="175" />
+          </div>
+          <div class="field">
+            <label id="w-label">Weight <span id="w-unit">kg</span></label>
+            <input type="number" id="weight" placeholder="70" />
+          </div>
+          <div class="field input-full">
+            <label>Target BMI</label>
+            <input type="number" id="target-bmi" placeholder="22.0" />
+          </div>
+        </div>
+
+        <!-- BMI DISPLAY -->
+        <div class="bmi-display">
+          <div class="bmi-number" id="bmiValue">—</div>
+          <div class="bmi-category" id="bmiCategory">Enter your details</div>
+          <div class="bmi-note" id="bmiNote"></div>
+          <div class="gauge-wrap">
+            <div class="gauge-track">
+              <div class="gauge-marker" id="gaugeMarker"></div>
+            </div>
+            <div class="gauge-labels">
+              <span class="gauge-label">16</span>
+              <span class="gauge-label">18.5</span>
+              <span class="gauge-label">25</span>
+              <span class="gauge-label">30</span>
+              <span class="gauge-label">40</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="calcBtn" disabled>Calculate BMI</button>
+        <div class="btn-row">
+          <button class="btn-secondary" id="hwrBtn" disabled>
+            Ideal Range
+          </button>
+          <button class="btn-secondary" id="targetBtn" disabled>
+            Target Goal
+          </button>
+        </div>
+        <div class="share-row">
+          <button class="btn-share" id="shareBtn">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path
+                d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"
+              />
+            </svg>
+            Share result
+          </button>
         </div>
       </div>
 
-      <div class="actions">
-        <button class="btn-calculator" disabled>Calculate BMI</button>
-        <div class="secondary-btns">
-          <button class="hwr-calculator" disabled>Ideal Range</button>
-          <button class="tb-btn" disabled>Target Goal</button>
+      <!-- CHART -->
+      <div class="card">
+        <p class="section-label">BMI Trend</p>
+        <div class="chart-container">
+          <canvas id="bmiChart"></canvas>
         </div>
       </div>
-      <div
-        class="chart-container"
-        style="position: relative; height: 200px; width: 100%; margin-top: 20px"
-      >
-        <canvas id="bmiChart"></canvas>
-      </div>
-      <div class="history-section">
-        <h3>Recent Calculations</h3>
-        <ul id="historyList"></ul>
-        <button id="clearHistory">Clear History</button>
+
+      <!-- HISTORY -->
+      <div class="card">
+        <div class="section-row">
+          <p class="section-label" style="margin: 0">Recent Calculations</p>
+          <button class="btn-clear" id="clearHistory">Clear all</button>
+        </div>
+        <ul class="history-list" id="historyList">
+          <li class="empty-state">No history yet</li>
+        </ul>
       </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
