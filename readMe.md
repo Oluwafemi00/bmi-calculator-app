@@ -50,7 +50,7 @@ BMI Tracker calculates Body Mass Index in real time, visualises the result on a 
 BMI Tracker/
 ├── index.html
 ├── style.css
-└── script.js
+└── index.js
 ```
 
 Intentionally single-file to demonstrate organised, self-contained component thinking without a framework.
